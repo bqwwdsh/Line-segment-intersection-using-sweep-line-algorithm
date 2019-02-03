@@ -300,7 +300,7 @@ Point get_double_precision_point(Point p)
 
 double get_double_precision(double val)
 {
-    double x = floor(val.x) + get_precision(val.x - floor(val.x), 6.0);
+    double x = floor(val) + get_precision(val - floor(val), 6.0);
     //cout << "precision " << x << " " << y << endl;
     return x;
 }
@@ -316,6 +316,7 @@ void find_new_event(Segment sl, Segment sr, Point p)
             if(cur_points.find(intersection_point) == cur_points.end()){
                 cur_points.insert(intersection_point);
                 Q.insert(Event(intersection_point,INTERSECTION));
+                cout << "yes paisi" << endl;
             }
         }
     }
@@ -400,7 +401,7 @@ void handle_event_point(Event e)
 
             }
             else if(x - p.x > epsilon){
-                s.print("baal regular")
+                s.print("baal regular");
                 dhukse = 1;
             }
 
@@ -418,6 +419,7 @@ void handle_event_point(Event e)
 
     if(Up.size() + Lp.size() + Cp.size() > 1){
         /// got an intersection
+        cout << "GOT INTERSECTION" << endl;
         if(intersection_map.find({p.x,p.y}) == intersection_map.end()){
             intersection_map[{p.x,p.y}] = ++intersection_count;
         }
@@ -425,18 +427,19 @@ void handle_event_point(Event e)
         int cnt = intersection_map[{p.x,p.y}];
 
         for(Segment s : Up){
-            intersection_segments[cnt].push_back(s.segment_num);
+            intersection_segments[cnt].insert(s.segment_num);
         }
         for(Segment s : Lp){
-            intersection_segments[cnt].push_back(s.segment_num);
+            intersection_segments[cnt].insert(s.segment_num);
         }
         for(Segment s : Cp){
-            intersection_segments[cnt].push_back(s.segment_num);
+            intersection_segments[cnt].insert(s.segment_num);
         }
     }
 
     /// for only horizontal case
     if(e.event_type == HORIZONTAL_END){
+        cout << "\nHORIZONTAL CASE\n" << endl;
         it = T.upper_bound(Segment(Point(p.x+.01,p.y),Point(p.x+.01,p.y)));
         Segment s = *it;
         s.print("after upper-bound");
@@ -468,8 +471,8 @@ void handle_event_point(Event e)
                     }
                     int cnt = intersection_map[{x,p.y}];
 
-                    intersection_segments[cnt].push_back(s.segment_num);
-                    intersection_segments[cnt].push_back(pre_point.second);
+                    intersection_segments[cnt].insert(s.segment_num);
+                    intersection_segments[cnt].insert(pre_point.second);
 
                 }
                 else if(x - p.x > epsilon){
@@ -497,12 +500,13 @@ void handle_event_point(Event e)
         T.erase(s);
     }
 
-    if(fabs(p.y - lowest_y) < epsilon){
+    /*if(fabs(p.y - lowest_y) < epsilon){
         /// lowest end poin touch kore felese
         /// r kaaj nai :P
         return;
-    }
+    }*/
 
+    cout << "baaaaal" <<endl;
     for(Segment s : Up){
         T.insert(s);
     }
@@ -653,7 +657,7 @@ void handle_event_point(Event e)
         if(is_valid(left_neighbour) && is_valid(leftmost)){
             find_new_event(left_neighbour, leftmost, p);
             left_neighbour.print("left neighbour");
-            leftmost.print("leftmost")
+            leftmost.print("leftmost");
         }
 
         if(is_valid(right_neighbour) && is_valid(rightmost)){
@@ -750,18 +754,17 @@ int main()
     T.insert(right_dummy_segment);
 
     while(!Q.empty()){
-        cout << "////////----- event shuru ----///////////" << endl;
+        cout << "\n////////----- event shuru ----///////////\n" << endl;
         Event e = *Q.begin();
         Q.erase(e);
         e.print();
-        erased_event.insert(e);
         sweep_line_y = e.point.y;
         handle_event_point(e);
         //cout << e.point.x << " " << e.point.y << endl;
 
         //
 
-        cout << "////////----- event shesh---------//////" << endl;
+        cout << "\n////////----- event shesh---------//////\n\n" << endl;
 
 
     }
@@ -774,7 +777,7 @@ int main()
         pair<double,double> point = it->first;
         int num = it->second;
 
-        cout << "Point : " << point.first << " " << point.second << ", Lines : "
+        cout << "Point : " << point.first << " " << point.second << " , Lines : ";
         for(int seg_num : intersection_segments[num]){
             cout << seg_num << " ";
         }
