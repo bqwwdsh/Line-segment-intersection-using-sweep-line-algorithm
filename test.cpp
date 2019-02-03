@@ -1,10 +1,9 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-#define epsilon (1.0e-6)
+#define epsilon (1.0e-4)
 
 double sweep_line_y;
-int point_count;
 
 
 double get_x(double x0, double y0, double x1, double y1, double y)
@@ -70,15 +69,13 @@ struct Event{
 
 struct Segment{
     Point start_point,end_point;
-    int segment_num ;
+    int segment_num = -1;
 
     Segment(){
-        segment_num = -1;
     }
     Segment(Point a, Point b){
         start_point = a;
         end_point = b;
-        segment_num = -1;
     }
 
     Segment(Point a, Point b, int num){
@@ -165,7 +162,7 @@ multiset<Segment>T;
 
 
 
-/*
+
 
 Point get_intersection_point(Segment P, Segment Q)
 {
@@ -208,40 +205,77 @@ Point get_intersection_point(Segment P, Segment Q)
 /// ---------------------------- ///
 
 
-*/
 
-void get_for_upper_bound_delete(Point p)
+
+Point get_point_for_upper_bound_delete(Point p)
 {
     /// > >
-    printf("p.x %0.8lf\n",p.x);
+    //printf("p.x %0.8lf\n",p.x);
     double x = p.x;
     double y = p.y;
     double new_x;
+    double new_y;
     double dif = 100000;
 
     double cur = .9;
     double check_val = p.x - floor(p.x);
 
-    printf("check val %0.8lf\n",check_val);
+    //printf("check val %0.8lf\n",check_val);
 
     while(cur - check_val > epsilon && cur > epsilon){
         if(cur - check_val < dif){
-            cout << "yes" << endl;
+            //cout << "yes" << endl;
             dif = cur - check_val;
             new_x = cur;
         }
 
-        cur -= 0.1;
+        cur -= 0.005;
     }
 
     new_x = new_x + floor(p.x);
 
+    //cout << new_x << endl;
+
+
+    dif = 100000;
+    cur = .9;
+    check_val = p.y - floor(p.y);
+
+    //printf("check val %0.8lf\n",check_val);
+
+    while(cur - check_val > epsilon && cur > epsilon){
+        if(cur - check_val < dif){
+            //cout << "yes" << endl;
+            dif = cur - check_val;
+            new_y = cur;
+        }
+
+        cur -= 0.005;
+    }
+
+    new_y = new_y + floor(p.y);
+
 
 
     //printf("%.8lf\n",new_x);
-    cout << new_x;
+    //cout << new_y;
 
+    return Point(new_x,new_y);
 
+}
+
+double get_precision(double value, double precision)
+{
+    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+
+}
+
+Point get_double_precision_point(Point p)
+{
+    double x = floor(p.x) + get_precision(p.x - floor(p.x), 6.0);
+    double y = floor(p.y) + get_precision(p.y - floor(p.y), 6.0);
+    cout << "precision " << x << " " << y << endl;
+    return Point(x,y);
 }
 /*
 Point get_for_upper_bound_insert(Point p)
@@ -252,11 +286,18 @@ Point get_for_upper_bound_insert(Point p)
 int main()
 {
 
-    get_for_upper_bound_delete(Point(5.01234,23.0/7.0));
+    //get_point_for_upper_bound_delete(Point(37.0/7.0,23.0/7.0));
 
-    /*sweep_line_y = 5;
-    Segment dummy_segment = Segment(Point(-FLT_MAX,FLT_MAX), Point(-FLT_MAX,-FLT_MAX));
-    T.insert(dummy_segment);
+    //Point p = Point(5.28571, 3.28572);
+    Point p = Point(5.5, 5);
+    cout << "p " << p.x << " " <<p.y << endl;
+    sweep_line_y = p.y;
+
+    Segment left_dummy_segment = Segment(Point(-FLT_MAX / 2.0,FLT_MAX / 2.0), Point(-FLT_MAX / 2.0, -FLT_MAX / 2.0));
+    T.insert(left_dummy_segment);
+    Segment right_dummy_segment = Segment(Point(FLT_MAX / 2.0 ,FLT_MAX / 2.0), Point(FLT_MAX / 2.0,-FLT_MAX / 2.0));
+    T.insert(right_dummy_segment);
+
     T.insert(Segment(Point(1,5),Point(10,5)));
     T.insert(Segment(Point(6,9),Point(5,1)));
     T.insert(Segment(Point(3,8),Point(2,2)));
@@ -264,33 +305,44 @@ int main()
     T.insert(Segment(Point(-2,9),Point(-4,1)));
     T.insert(Segment(Point(15,8),Point(13,1)));
     T.insert(Segment(Point(12,5),Point(17,5)));
+    T.insert(Segment(Point(5.5,5),Point(6,3)));
+
+
+    /*T.insert(Segment( get_double_precision_point(Point(6,9)), get_double_precision_point(Point(5,1))));
+    T.insert(Segment( get_double_precision_point(Point(1,23.0/7.0)), get_double_precision_point(Point(10,23.0/7.0)) ));
+    T.insert(Segment( get_double_precision_point(Point(15,9)), get_double_precision_point(Point(12,2))));
+    T.insert(Segment( get_double_precision_point(Point(4,10)), get_double_precision_point(Point(46.0/7.0,-24.0/7.0))));
+    T.insert(Segment( get_double_precision_point(Point(11,23.0/7.0)), get_double_precision_point(Point(17,23.0/7.0))));*/
 
     for(Segment s : T){
         s.print("test");
     }
 
-    cout << "---end---" << endl;
+    cout << "---end---\n" << endl;
     multiset<Segment>::iterator it;
 
-    Point p = Point(6,5);
-    it = T.upper_bound(Segment(p,p));
-    it--;
+
+    it = T.lower_bound(Segment(Point(p.x+.001,p.y),Point(p.x+.001,p.y)));
     Segment s = *it;
-
-    s.print("yes");
-
+    s.print("first");
     it--;
     s = *it;
-    s.print("yes");
 
-    while(s != dummy_segment){
+
+
+
+
+    while(s != left_dummy_segment){
         bool dhukse = 0;
+        //s.print("while");
         if(fabs(s.start_point.y - s.end_point.y) < epsilon && p.x - s.start_point.x > epsilon && p.x - s.end_point.x < epsilon){
             s.print("parallel");
             dhukse = 1;
+            cout << "Here" << endl;
         }
         else{
             double x = get_x(s.start_point.x, s.start_point.y, s.end_point.x, s.end_point.y, sweep_line_y);
+            cout << "x " << x << endl;
             if(fabs(x - p.x) < epsilon){
                 s.print("regular");
                 dhukse = 1;
@@ -301,12 +353,15 @@ int main()
         //s.print("while");
         it--;
         s = *it;
-    }*/
+    }
 
-    /*Point p = get_intersection_point(Segment(Point(6,9),Point(10,5)), Segment(Point(5,1),Point(3,2)));
-    cout << p.x << " " << p.y << endl;*/
+    //Point pp = get_intersection_point(Segment(Point(6,9),Point(5,1)), Segment(Point(4,10),Point(6.57143,-3.42857)));
+    //cout << pp.x << " " << pp.y << endl;
     /*double x = get_x(6,9,5,1,23.0/7.0);
     cout << x;*/
+
+
+    //printf("%0.6lf",x);
 
 
 
