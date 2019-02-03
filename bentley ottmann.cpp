@@ -1,10 +1,10 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-#define epsilon (1.0e-6)
+#define epsilon (1.0e-4)
 
 
-enum Type{REGULAR, INTERSECTION};
+enum Type{REGULAR, HORIZONTAL_START, HORIZONTAL_END};
 
 double sweep_line_y;
 int point_count;
@@ -52,6 +52,10 @@ struct Event{
 
     }
 
+    Event(Point p){
+        point = p;
+        event_type = NONE;
+    }
     Event(Point pp, Type type){
         point = pp;
         event_type = type;
@@ -126,26 +130,29 @@ struct Segment{
         else if(fabs(sweep_line_y - start_point.y) < epsilon &&  fabs(sweep_line_y - end_point.y) < epsilon){
             /// s horizontal
             double x2 = get_x(s2.start_point.x, s2.start_point.y, s2.end_point.x, s2.end_point.y, sweep_line_y);
-            if( x2 - start_point.x > epsilon && x2 - end_point.x < epsilon){
+            /*if( x2 - start_point.x > epsilon && x2 - end_point.x < epsilon){
                 return 0;
             }
-            else{
+            else{*/
+
                 if( x2 > end_point.x) return 1;
-                else return 0;
-            }
+                else  return 0;
+                //else return 0;
+            //}
             //double x1 = 1000000.0;
             //return x1 < x2;
         }
         else if(fabs(sweep_line_y - s2.start_point.y) < epsilon &&  fabs(sweep_line_y - s2.end_point.y) < epsilon){
             /// s2 horizontal
             double x1 = get_x(start_point.x, start_point.y, end_point.x, end_point.y, sweep_line_y);
-            if( x1 - s2.start_point.x > epsilon && x1 - s2.end_point.x < epsilon){
+            /*if( x1 - s2.start_point.x > epsilon && x1 - s2.end_point.x < epsilon){
                 return 1;
             }
-            else{
+            else{*/
                 if( x1 < s2.start_point.x) return 1;
-                else return 0;
-            }
+                else if(x1 > s2.end_point.x) return 0;
+                else return 1;
+            //}
         }
         else{
             /// neither
@@ -180,71 +187,10 @@ Segment left_dummy_segment = Segment(Point(-FLT_MAX,FLT_MAX), Point(-FLT_MAX,-FL
 Segment right_dummy_segment = Segment(Point(FLT_MAX,FLT_MAX), Point(FLT_MAX,-FLT_MAX));
 
 
-/*
-5
-10 2 10 9
-14 9 10 9
-10 9 6 13
-13 6 10 9
-6 4 10 9
-*/
-/*
-6
-13 6 9 9
-15 4 13 6
-8 5 18 7
-5 4 2 10
-13 6 16 9
-13 2 13 6
-*/
 
-/*
-8
-13 6 9 9
-8 5 18 7
-5 4 2 10
-13 6 16 9
-20 2 25 8
-22 3 27 7
-26 7 18 4
-0 2 6 8
-*/
 
-/*
-4
-13 6 9 9
-8 5 18 7
-13 6 16 9
-20 2 25 8
-*/
 
-/*
-8
-9.8 11 8 2
-1 10 3 8
-8 10 6 6
-4 9 1 6
-7 8 7 5
-6 10 10 6
-5 13 7 8
-3 8 2 5
-*/
-
-/*
-double get_intersection_x(Segment a, double y)
-{
-    if(fabs(a.start_point.y - a.end_point.y) < epsilon){
-        return a.start_point.x;
-    }
-    else{
-        double m1 = (a.end_point.x - a.start_point.x) / (a.end_point.y - a.start_point.y);
-        double val = a.start_point.x + m1 * (y - a.start_point.y);
-        return val;
-    }
-}
-*/
-
-/// -------------- intersection -------------------- ///
+/// -------------- code segment for intersection  -------------------- ///
 
 Segment getBoundingBox(Segment p) {
         Point a = Point(min(p.start_point.x, p.end_point.x), min(p.start_point.y,p.end_point.y));
@@ -290,7 +236,7 @@ bool doLinesIntersect(Segment a, Segment b) {
 
 Point get_intersection_point(Segment P, Segment Q)
 {
-    // Line AB represented as a1x + b1y = c1
+
     Point A = P.start_point;
     Point B = P.end_point;
     Point C = Q.start_point;
@@ -300,7 +246,7 @@ Point get_intersection_point(Segment P, Segment Q)
     double b1 = A.x - B.x;
     double c1 = a1*(A.x) + b1*(A.y);
 
-    // Line CD represented as a2x + b2y = c2
+
     double a2 = D.y - C.y;
     double b2 = C.x - D.x;
     double c2 = a2*(C.x)+ b2*(C.y);
@@ -309,24 +255,20 @@ Point get_intersection_point(Segment P, Segment Q)
 
     if (determinant == 0)
     {
-        // The lines are parallel. This is simplified
-        // by returning a pair of FLT_MAX
+
         return Point(FLT_MAX, FLT_MAX);
     }
     else
     {
         double x = (b2*c1 - b1*c2)/determinant;
         double y = (a1*c2 - a2*c1)/determinant;
-
-        //if((min(P.start_point.x, Q.start_point.x) - x) < epsilon  && (x - max(P.end_point.x, Q.end_point.x)) < epsilon  && (max(P.end_point.y, Q.end_point.y) - y) < epsilon  && (y - min(P.start_point.y, Q.start_point.y)) < epsilon ) return Point(x, y);
-        //else Point(FLT_MAX, FLT_MAX);
         return Point(x,y);
 
 
     }
 }
 
-/// -------------- end ---------------------- ///
+/// -------------- intersection code segment end ---------------------- ///
 
 
 void find_new_event(Segment sl, Segment sr, Point p)
@@ -334,8 +276,8 @@ void find_new_event(Segment sl, Segment sr, Point p)
     if(doLinesIntersect(sl,sr)){
         Point intersection_point = get_intersection_point(sl,sr);
         if( intersection_point.y < sweep_line_y || ( fabs(intersection_point.y - sweep_line_y)  < epsilon && intersection_point.x > p.x) ){
-            if(erased_event.find(Event(intersection_point)) == erased_event.end()){
-                Q.insert(Event(intersection_point));
+            if(erased_event.find(Event(intersection_point,INTERSECTION)) == erased_event.end()){
+                Q.insert(Event(intersection_point,INTERSECTION));
             }
         }
     }
@@ -375,7 +317,7 @@ void handle_event_point(Event e)
 
     vector_print(Up, "UP");
 
-    if(Endpoint_Map.find({p.x, p.y}) == Endpoint_Map.end()){
+    if(e.event_type == INTERSECTION){
         cout << "yes map a nai 1" << endl;
         double xx = floor(p.x - 1.0);
         double yy ;
@@ -768,7 +710,7 @@ int main()
 
         if(Map.find({a.x,a.y}) == Map.end()){
             Map[{a.x,a.y}] = ++point_count;
-            Endpoint_Map[{a.x,a.y}] = ++end_points_cnt;
+            //Endpoint_Map[{a.x,a.y}] = ++end_points_cnt;
             segments[Map[{a.x,a.y}]].push_back(Segment(a,b,i+1));
             //cout << "yes" << endl;
         }
@@ -776,13 +718,9 @@ int main()
             segments[Map[{a.x,a.y}]].push_back(Segment(a,b,i+1));
         }
 
-        if(Map.find({b.x,b.y}) == Map.end()){
-            Endpoint_Map[{b.x,b.y}] = ++end_points_cnt;
 
-        }
-
-        Q.insert(Event(a));
-        Q.insert(Event(b));
+        Q.insert(Event(a,REGULAR));
+        Q.insert(Event(b,REGULAR));
 
 
        //T.insert(Segment(a,b));
